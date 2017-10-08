@@ -52,6 +52,19 @@ sealed trait Stream[+A] {
     foldRight(false) {(next, acc) =>
       p(next) || acc
     }
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(empty[B]){(next, acc) =>
+      cons(f(next), acc)
+    }
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(empty[A]){(next, acc) =>
+      if (f(next)) cons(next, acc)
+      else acc
+    }
+
+
 }
 
 object Stream {
@@ -63,6 +76,10 @@ object Stream {
     new Stream[A] {
       lazy val uncons = Some((head, tail))
     }
+
+  def constant[A](a: A): Stream[A] = cons(a, constant(a))
+
+  def from(n: Int): Stream[Int] = cons(n, from(n+1))
 
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty[A]
