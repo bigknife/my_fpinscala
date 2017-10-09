@@ -81,6 +81,14 @@ object Stream {
 
   def from(n: Int): Stream[Int] = cons(n, from(n+1))
 
+  def fibs: Stream[Int] = ???
+
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case None => empty[A]
+    case Some((a, s)) => cons(a, unfold(s)(f))
+  }
+    
+
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty[A]
     else cons(as.head, apply(as.tail:_*))
