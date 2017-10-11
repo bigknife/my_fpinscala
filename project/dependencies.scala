@@ -21,6 +21,7 @@ object Dependencies {
     val hikariCP      = "2.7.1"
     val logback       = "1.2.2"
     val config        = "1.3.1"
+    val ammoniteRepl  = "1.0.2-4-73a8741"
   }
 
   object libraries {
@@ -80,6 +81,9 @@ object Dependencies {
     val logback = Seq("ch.qos.logback" % "logback-classic" % versions.logback)
 
     val typesafeConfig = Seq("com.typesafe" % "config" % versions.config)
+
+    val ammoniteRepl = Seq(
+      "com.lihaoyi" % "ammonite" % "1.0.2-4-73a8741" % "test" cross CrossVersion.full)
   }
 
   object compilerPlugins {
@@ -92,8 +96,6 @@ object Dependencies {
   object projects {
     import libraries._
     // add your projects libraryDependencies here
-    private val common = logback ++ unitTest ++ cats ++ freestyle ++ fs2 ++ typesafeConfig
-    val server         = common ++ circe ++ http4s_server ++ servletApi
-    val admin          = common ++ circe ++ http4s_server ++ servletApi
+    val common = logback ++ unitTest ++ cats ++ freestyle ++ fs2 ++ typesafeConfig ++ ammoniteRepl
   }
 }

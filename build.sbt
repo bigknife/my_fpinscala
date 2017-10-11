@@ -33,7 +33,11 @@ version in ThisBuild := {
   else s"$v-${gitHeadCommitSha.value}-SNAPSHOT"
 }
 
-initialCommands in console := """import fpinscala._"""
-
+//initialCommands in (Test, console) := """ammonite.repl.Repl.run("")"""
+initialCommands in (Test, console) := """import fpinscala._"""
 // client project
 lazy val rootProject = simpleProject
+  .settings(
+    libraryDependencies ++= projects.common
+  )
+
