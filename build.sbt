@@ -18,6 +18,8 @@ scalacOptions in ThisBuild ++= Seq(
   "-Ywarn-unused"
 )
 
+scalaOrganization in ThisBuild := "org.typelevel"
+
 scalacOptions in (Compile, console) ~= (_ filterNot (_ contains "paradise"))
 
 // customize version
@@ -25,7 +27,7 @@ val gitHeadCommitSha = settingKey[String]("current git commit SHA")
 val release          = settingKey[Boolean]("is publishing released version")
 release := sys.props("release") == "true"
 
-gitHeadCommitSha in ThisBuild := Process("git rev-parse HEAD").lines.head
+gitHeadCommitSha in ThisBuild := scala.sys.process.Process("git rev-parse HEAD").lines.head
 
 version in ThisBuild := {
   val v = "0.1.0"
