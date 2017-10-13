@@ -10,6 +10,7 @@ object Par {
   type Par[A] = ExecutorService => Future[A]
 
   def run[A](s: ExecutorService)(a: Par[A]): A = a(s).get
+  
   def unit[A](a: A): Par[A] = (s: ExecutorService) => UnitFuture(a)
 
   // unit future
