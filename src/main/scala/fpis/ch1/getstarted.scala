@@ -49,4 +49,30 @@ object GetStarted extends App {
   }
 
   println(fibLaw(20))
+
+  case class Fibonacci(
+      idx: Int,
+      value: Long,
+      previous: Option[Fibonacci]
+  ) {
+    def next: Fibonacci = Fibonacci(idx + 1, value + previous.map(_.value).getOrElse(0L), Some(this))
+  }
+  object Fibonacci {
+    def zero: Fibonacci = Fibonacci(0, 0, None)
+    def one: Fibonacci = Fibonacci(1, 1, Some(zero))
+
+    def take(n: Int): Fibonacci =
+      if (n == 0) zero
+      else if (n == 1) one
+      else {
+        def next(current: Fibonacci): Fibonacci =
+          if (n == current.idx) current
+          else next(current.next)
+
+        next(one)
+      }
+  }
+
+  val fib1 = Fibonacci.take(50)
+  println(fib1.value)
 }
