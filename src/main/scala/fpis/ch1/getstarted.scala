@@ -7,6 +7,7 @@ object GetStarted extends App {
     msg.format(name, n, v)
   }
 
+
   def abs(n: Int): Int =
     if (n < 0) -n
     else n
