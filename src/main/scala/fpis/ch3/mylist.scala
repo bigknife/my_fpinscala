@@ -7,6 +7,11 @@ sealed trait MyList[+A] {self =>
 
   def ::[B >: A](a: B): MyList[B] = prepend(a)
 
+  def headOpt: Option[A] = self match {
+    case MyNil => None
+    case MyCons(head, _) => Some(head)
+  }
+
   @annotation.tailrec
   final def foldLeft[B](z: B)(f: (B, A) => B): B = self match {
     case MyNil => z
@@ -62,6 +67,30 @@ sealed trait MyList[+A] {self =>
     val list: MyList[MyList[B]] = map(f)
     list.foldLeft(MyList[B]())((acc, a) => acc.concat(a))
   }
+
+  def zip[B](bs: MyList[B]): MyList[(A, B)] = (self, bs) match {
+    case (MyNil, _) => MyNil
+    case (_, MyNil) => MyNil
+    case (MyCons(h1, t1), MyCons(h2, t2)) =>
+      MyCons((h1, h2), t1.zip(t2))
+  }
+
+  def zipWith[B, C](bs: MyList[B])(f: (A, B) => C): MyList[C] = (self, bs) match {
+    case (MyNil, _) => MyNil
+    case (_, MyNil) => MyNil
+    case (MyCons(h1, t1), MyCons(h2, t2)) =>
+      MyCons(f(h1, h2), t1.zipWith(t2)(f))
+  }
+
+  def zipWithIndex: MyList[(Int, A)] = {
+    val indexList = self.foldLeft(MyList[Int]()) {(acc, _) =>
+      acc.headOpt match {
+        case None => MyCons(0, acc)
+        case Some(h) => MyCons(h + 1, acc)
+      }
+    }
+    indexList.reverse.zip(self)
+  }
 }
 
 object MyList {
@@ -72,7 +101,7 @@ object MyList {
     override def toString: String = {
       def go(acc: String, currentTail: MyList[A]): String = currentTail match {
         case MyNil => acc + " :: " + MyNil
-        case MyCons(h, t) => go(h + " :: " + acc, t)
+        case MyCons(h, t) => go(acc + " :: " + h, t)
       }
       go(head.toString, tail) 
     }
