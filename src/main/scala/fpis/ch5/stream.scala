@@ -8,11 +8,13 @@ trait Stream[+A] {
 object Stream {
   def empty[A]: Stream[A] = new Stream[A] {
     def uncons: Option[(A, Stream[A])] = None
+    override def toString: String = "empty"
   }
 
   def cons[A](hd: => A, tl: => Stream[A]): Stream[A] =
     new Stream[A] {
       lazy val uncons: Option[(A, Stream[A])] = Some(hd, tl)
+      override def toString: String = s"$hd #:: <tl>"
     }
 
   def apply[A](as: A*): Stream[A] =
@@ -29,6 +31,16 @@ object Stream {
           case Some((hd, tail)) => go(acc :+ hd, tail)
         }
       go(Nil, stream)
+    }
+
+    def headOption: Option[A] = stream.uncons match {
+      case None => None
+      case Some((hd, _)) => Some(hd)
+    }
+
+    def tail: Stream[A] = stream.uncons match {
+      case None => empty[A]
+      case Some((_, tail)) => tail
     }
 
     def take(n: Int): Stream[A] = stream.uncons match {
@@ -49,5 +61,86 @@ object Stream {
         case Some((h, t)) => f(h, t.foldRight(z)(f))
         case None => z
       }
+
+    def exists(p: A => Boolean): Boolean =
+      foldRight(false)((a, acc) => p(a) || acc)
+
+    def forAll(p: A => Boolean): Boolean =
+      foldRight(true)((a, acc) => p(a) && acc)
+
+    def takeWhileOverFoldRight(p: A => Boolean): Stream[A] =
+      foldRight(empty[A]){(a, acc) =>
+        if(p(a)) cons(a, acc)
+        else acc
+      }
+
+    def map[B](f: A => B): Stream[B] =
+      foldRight(empty[B]){(a, acc) =>
+        cons(f(a), acc)
+      }
+
+    def mapOverUnfold[B](f: A => B): Stream[B] =
+      unfold(stream) {s =>
+        s.headOption match {
+          case None => None
+          case Some(h) => Some(f(h), s.tail)
+        }
+      }
+
+
+    def filter(p: A => Boolean): Stream[A] =
+      foldRight(empty[A]){(a, acc) =>
+        if(p(a)) cons(a, acc)
+        else acc
+      }
+
+    def append[B >: A](tail: Stream[B]): Stream[B] =
+      foldRight(tail)(cons(_, _))
+
+    def flatMap[B](f: A => Stream[B]): Stream[B] =
+      foldRight(empty[B]){(a, acc) => f(a).append(acc)}
+
+    def startsWith[B >: A](sub: Stream[B]): Boolean = (stream.headOption, sub.headOption) match {
+      case (_, None) => true
+      case (None, Some(_)) => false
+      case (Some(h1), Some(h2)) => (h1 == h2) && stream.tail.startsWith(sub.tail)      
+    }
+
+    def tails: Stream[Stream[A]] = headOption match {
+      case None => empty[Stream[A]]
+      case Some(_) =>  cons(stream, stream.tail.tails)
+    }
+
+    def scanRight[B](z: B)(f: (A, B) => B): Stream[B] = {
+      tails.foldRight(cons(z, empty[B])) {(as, acc) =>
+        // as: Stream[A]
+        val asb = as.foldRight(z){(a, b) => f(a, b)}
+        cons(asb, acc)
+      }
+    }
+
+
   }
+
+  //////////////////////////////////////////////////////////////
+  // some interesting ctor
+  /////////////////////////////////////////////////////////////
+
+
+  def constant[A](a: A): Stream[A] = cons(a, constant(a))
+
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = f(z) match {
+    case None => empty[A]
+    case Some((a, s)) => cons(a, unfold(s)(f))
+  }
+
+  def constantOverUnfold[A](a: A): Stream[A] = unfold(a)(x => Some(x, x))
+
+  //// pcn, previous, current, next
+  def fibs: Stream[Long] = unfold((0L, 0L)) {
+    case (0L, 0L) => Some(0L, (1L, 1L))
+    case (c, n) => Some(n, (n, c + n))
+  }
+
+
 }
