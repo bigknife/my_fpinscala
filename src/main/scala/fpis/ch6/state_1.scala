@@ -34,10 +34,33 @@ final case class State[S, +A](run: S => (A, S)) {
     val (sb, s1) = map2(unit[S, Unit](()))((a, _) => f(a)).run(s)
     sb.run(s1)
   })
+
+  def get: State[S, S] = State(s => (s, s))
+
+  def set[B >: A](s1: S): State[S, B] = State(s => {
+    val (a, _) = run(s)
+    (a, s1)
+  })
+
+  def modify(f: S => S): State[S, Unit] = for {
+    s <- get
+    _ <- set(f(s))
+  } yield()
 }
 
 object State {
   def unit[S, A](a: A): State[S, A] = State(s => (a, s))
+
+  def sequence[S, A](states: List[State[S, A]]): State[S, List[A]] =
+    states.foldRight(unit[S, List[A]](Nil)) {(a, acc) =>
+      State(
+        s => {
+          val (l, s1) = acc.run(s)
+          val (a1, s2) = a.run(s1)
+          ((l :+ a1), s2)
+        }
+      )
+    }
 }
 
 sealed trait RNG {
@@ -57,6 +80,8 @@ object rand {
 
   def unit[A](a: A): Rand[A] = State.unit[RNG,A](a)
 
+  
+
   val int: Rand[Int] = State(_.nextInt)
   val double: Rand[Double] = int.map(_.toDouble.abs / Double.MaxValue)
 
@@ -66,4 +91,42 @@ object rand {
   } yield ((d, i))
 
   val intDouble: Rand[(Int, Double)] = doubleInt.map(x => (x._2, x._1))
+}
+
+
+object CandyDispenser {
+  sealed trait Input
+  case object Coin extends Input
+  case object Turn extends Input
+
+  case class Machine(locked: Boolean, candies: Int, coins: Int)
+
+  import State._
+
+  def simulateMachine(inputs: List[Input]): State[Machine, Int] = {
+    inputs.foldLeft(unit[Machine, Int](0)) {(acc, a) =>
+
+      a match {
+        case Coin =>
+          State(m => {
+            acc.run(m) match {
+              // Inserting a coin into a locked machine will cause it to unlock if there is any candy left.
+              case (coins, machine) if machine.locked && machine.candies > 0 =>
+                val coins1 = machine.coins + 1
+                (coins1, machine.copy(locked = false, coins = coins1))
+              // inserting a coin into an unlocked machine does nothing.
+              case x =>  x
+            }
+          })
+
+        case Turn =>
+          State(m => {
+            acc.run(m) match {
+              case (coins, machine) if !machine.locked => (coins, machine.copy(locked = true, candies = machine.candies - 1))
+              case x => x
+            }
+          })
+      }
+    }
+  }
 }
