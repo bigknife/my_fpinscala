@@ -3,7 +3,7 @@ package fpis.ch3
 sealed trait Tree[+A]
 
 object Tree {
-  case class Leaf[A](value: A) extends Tree[A]
+  case class Leaf[A](value: A)                        extends Tree[A]
   case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
 
   def leaf[A](value: A): Tree[A] = Leaf(value)
@@ -12,7 +12,7 @@ object Tree {
 
   final case class TreeOps[A](tree: Tree[A]) {
     def size: Int = tree match {
-      case Leaf(_) => 1
+      case Leaf(_)      => 1
       case Branch(l, r) => TreeOps(l).size + TreeOps(r).size
     }
 
@@ -25,12 +25,12 @@ object Tree {
     }
 
     def depth: Int = tree match {
-      case Leaf(_) => 1
+      case Leaf(_)      => 1
       case Branch(l, r) => TreeOps(l).size max TreeOps(r).size
     }
 
     def map[B](f: A => B): Tree[B] = tree match {
-      case Leaf(v) => Leaf(f(v))
+      case Leaf(v)      => Leaf(f(v))
       case Branch(l, r) => Branch(TreeOps(l).map(f), TreeOps(r).map(f))
     }
 

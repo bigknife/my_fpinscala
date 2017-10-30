@@ -23,7 +23,7 @@ object RNG {
   def positiveInt(rng: RNG): (Int, RNG) = {
     rng.nextInt match {
       case (Int.MinValue, rng1) => (-(Int.MinValue + 1), rng1)
-      case (i, rng1) => (i.abs, rng1)
+      case (i, rng1)            => (i.abs, rng1)
     }
   }
 
@@ -32,13 +32,13 @@ object RNG {
     (i.toDouble / Double.MaxValue, rng1)
   }
 
-  def intDouble(rng: RNG):((Int, Double), RNG) = {
+  def intDouble(rng: RNG): ((Int, Double), RNG) = {
     val (i, rng1) = rng.nextInt
     val (d, rng2) = double(rng1)
     ((i, d), rng2)
   }
 
-  def doubleInt(rng: RNG):((Double, Int), RNG) = {
+  def doubleInt(rng: RNG): ((Double, Int), RNG) = {
     val (i, rng1) = rng.nextInt
     val (d, rng2) = double(rng1)
     ((d, i), rng2)
@@ -56,8 +56,8 @@ object RNG {
       if (count <= 0) list
       else {
         val (i, rng1) = rng.nextInt;
-        go(count -1, rng1, (list._1 :+ i, rng1))
+        go(count - 1, rng1, (list._1 :+ i, rng1))
       }
-    go(count, rng, (List[Int](),rng))
+    go(count, rng, (List[Int](), rng))
   }
 }

@@ -11,13 +11,11 @@ object common {
     sources in (Compile, doc) := Seq.empty,
     // add ammonite-repl
     //initialCommands in (Test, console) := """ammonite.repl.Repl.run("")"""
-
     sourceGenerators in Test += Def.task {
       val file = (sourceManaged in Test).value / "amm.scala"
       IO.write(file, """object amm extends App { ammonite.Main().run() }""")
       Seq(file)
     }.taskValue
-    
   )
 
   val publishSettings = Seq(

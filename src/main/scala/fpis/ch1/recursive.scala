@@ -8,8 +8,8 @@ object recursive {
   def factorial1(n: Int): Int = {
     @annotation.tailrec
     def go(acc: Int, n: Int): Int =
-      if(n == 0) acc
-      else go(acc * n, n -1)
+      if (n == 0) acc
+      else go(acc * n, n - 1)
 
     go(1, n)
   }

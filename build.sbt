@@ -42,4 +42,3 @@ lazy val rootProject = simpleProject
   .settings(
     libraryDependencies ++= projects.common
   )
-

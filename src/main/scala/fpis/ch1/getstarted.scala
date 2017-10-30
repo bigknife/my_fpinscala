@@ -7,7 +7,6 @@ object GetStarted extends App {
     msg.format(name, n, v)
   }
 
-
   def abs(n: Int): Int =
     if (n < 0) -n
     else n
@@ -56,11 +55,12 @@ object GetStarted extends App {
       value: Long,
       previous: Option[Fibonacci]
   ) {
-    def next: Fibonacci = Fibonacci(idx + 1, value + previous.map(_.value).getOrElse(0L), Some(this))
+    def next: Fibonacci =
+      Fibonacci(idx + 1, value + previous.map(_.value).getOrElse(0L), Some(this))
   }
   object Fibonacci {
     def zero: Fibonacci = Fibonacci(0, 0, None)
-    def one: Fibonacci = Fibonacci(1, 1, Some(zero))
+    def one: Fibonacci  = Fibonacci(1, 1, Some(zero))
 
     def take(n: Int): Fibonacci =
       if (n == 0) zero

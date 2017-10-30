@@ -1,6 +1,6 @@
 package fpis.ch3
 
-sealed trait MyList[+A] {self =>
+sealed trait MyList[+A] { self =>
   import MyList._
 
   def prepend[B >: A](a: B): MyList[B] = MyCons(a, self)
@@ -8,14 +8,14 @@ sealed trait MyList[+A] {self =>
   def ::[B >: A](a: B): MyList[B] = prepend(a)
 
   def headOpt: Option[A] = self match {
-    case MyNil => None
+    case MyNil           => None
     case MyCons(head, _) => Some(head)
   }
 
   @annotation.tailrec
   final def foldLeft[B](z: B)(f: (B, A) => B): B = self match {
-    case MyNil => z
-    case MyCons(head, tail) =>tail.foldLeft(f(z, head))(f)
+    case MyNil              => z
+    case MyCons(head, tail) => tail.foldLeft(f(z, head))(f)
   }
 
   def reverse: MyList[A] = {
@@ -32,10 +32,11 @@ sealed trait MyList[+A] {self =>
   def take(n: Int): MyList[A] = {
     def go(n: Int, acc: MyList[A], current: MyList[A]): MyList[A] =
       if (n <= 0) acc
-      else current match {
-        case MyNil => acc
-        case MyCons(head, tail) => go(n -1, head :: acc, tail)
-      }
+      else
+        current match {
+          case MyNil              => acc
+          case MyCons(head, tail) => go(n - 1, head :: acc, tail)
+        }
 
     go(n, MyList[A](), self).reverse
   }
@@ -47,18 +48,20 @@ sealed trait MyList[+A] {self =>
     foldLeft(true)((acc, a) => acc && f(a)) // no short-circuit
 
   def forallWithShortCircuit(f: A => Boolean): Boolean = self match {
-    case MyNil => false
+    case MyNil              => false
     case MyCons(head, tail) => f(head) && tail.forall(f)
   }
 
   def exists(f: A => Boolean): Boolean = {
-    def go(acc: Boolean, current: MyList[A]): Boolean = if (acc) true else current match {
-      case MyNil => acc
-      case MyCons(head, tail) => go(acc || f(head), tail)
-    }
+    def go(acc: Boolean, current: MyList[A]): Boolean =
+      if (acc) true
+      else
+        current match {
+          case MyNil              => acc
+          case MyCons(head, tail) => go(acc || f(head), tail)
+        }
     go(false, self)
   }
-
 
   def map[B](f: A => B): MyList[B] =
     self.reverse.foldLeft(MyList[B]())((acc, a) => f(a) :: acc)
@@ -83,9 +86,9 @@ sealed trait MyList[+A] {self =>
   }
 
   def zipWithIndex: MyList[(Int, A)] = {
-    val indexList = self.foldLeft(MyList[Int]()) {(acc, _) =>
+    val indexList = self.foldLeft(MyList[Int]()) { (acc, _) =>
       acc.headOpt match {
-        case None => MyCons(0, acc)
+        case None    => MyCons(0, acc)
         case Some(h) => MyCons(h + 1, acc)
       }
     }
@@ -100,10 +103,10 @@ object MyList {
   case class MyCons[A](head: A, tail: MyList[A]) extends MyList[A] {
     override def toString: String = {
       def go(acc: String, currentTail: MyList[A]): String = currentTail match {
-        case MyNil => acc + " :: " + MyNil
+        case MyNil        => acc + " :: " + MyNil
         case MyCons(h, t) => go(acc + " :: " + h, t)
       }
-      go(head.toString, tail) 
+      go(head.toString, tail)
     }
   }
 
@@ -114,7 +117,7 @@ object MyList {
   def repeat[A](a: A, n: Int): MyList[A] = {
     def go(acc: MyList[A], n: Int): MyList[A] =
       if (n == 0) acc
-      else go(MyCons(a, acc), n-1)
+      else go(MyCons(a, acc), n - 1)
 
     go(MyList[A](), n)
   }
@@ -122,7 +125,7 @@ object MyList {
   def succeed[A](init: A)(f: A => Option[A]): MyList[A] = {
     def go(acc: MyList[A], v: A): MyList[A] = f(v) match {
       case Some(nv) => go(MyCons(v, acc), nv)
-      case None => acc
+      case None     => acc
     }
     go(MyList[A](), init)
   }

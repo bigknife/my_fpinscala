@@ -17,11 +17,11 @@ object par {
   type Par[A] = ExecutorService => Future[A]
 
   private case class UnitFuture[A](a: A) extends Future[A] {
-    def get(): A = a
+    def get(): A                                        = a
     def cancel(mayInterruptIfRunning: Boolean): Boolean = false
-    def get(timeout: Long, unit: TimeUnit): A = a
-    def isCancelled(): Boolean = false
-    def isDone(): Boolean = true
+    def get(timeout: Long, unit: TimeUnit): A           = a
+    def isCancelled(): Boolean                          = false
+    def isDone(): Boolean                               = true
   }
 
   // primitive combinator
@@ -30,7 +30,7 @@ object par {
   // derived combinator
   def async[A](a: => A): Par[A] = fork(unit(a))
 
-  /** 
+  /**
     * map2 is primitive, and map implemented in term to map2
   def map2[A, B, C](a: Par[A], b: Par[B])(f: (A, B) => C): Par[C] =
     (s: ExecutorService) => {
@@ -40,8 +40,7 @@ object par {
 
   def map[A, B](fa: Par[A])(f: A => B): Par[B] =
     map2(fa, unit(()))((a, _) => f(a))
-   */
-
+    */
   def fork[A](a: => Par[A]): Par[A] = (s: ExecutorService) => {
     // maybe deadlocked
     //   invoke get in a callable
@@ -67,14 +66,14 @@ object par {
   def map2[A, B, C](fa: Par[A], fb: Par[B])(f: (A, B) => C): Par[C] =
     map(product(fa, fb))(ab => f(ab._1, ab._2))
 
-  def parMap[A, B](l: List[A])(f: A => B): Par[List[B]] = 
+  def parMap[A, B](l: List[A])(f: A => B): Par[List[B]] =
     l.foldRight(unit(List[B]()))((a, acc) => map2(acc, unit(f(a)))(_ :+ _))
 
   def sequence_simple[A](l: List[Par[A]]): Par[List[A]] =
     l.foldRight[Par[List[A]]](unit(List[A]()))((h, t) => map2(h, t)(_ :: _))
 
   def sequence_right[A](l: List[Par[A]]): Par[List[A]] = l match {
-    case Nil => unit(Nil)
+    case Nil    => unit(Nil)
     case h :: t => map2(h, fork(sequence_right(t)))(_ :: _)
   }
 
@@ -96,16 +95,16 @@ object par {
   }
 
   def parFilter[A](l: List[A])(f: A => Boolean): Par[List[A]] = {
-    val x: List[Par[List[A]]] = l.map(asyncF(a => if(f(a)) List(a) else List()))
+    val x: List[Par[List[A]]] = l.map(asyncF(a => if (f(a)) List(a) else List()))
     map(sequence(x))(_.flatten)
   }
 
   def map3[A, B, C, D](fa: Par[A], fb: Par[B], fc: Par[C])(f: (A, B, C) => D): Par[D] =
     map2(map2(fa, fb)((a, b) => (a, b)), fc)((ab, c) => f(ab._1, ab._2, c))
 
-  def map4[A, B, C, D, E](fa: Par[A], fb: Par[B], fc: Par[C], fd: Par[D])(f: (A, B, C, D) => E): Par[E] =
+  def map4[A, B, C, D, E](fa: Par[A], fb: Par[B], fc: Par[C], fd: Par[D])(
+      f: (A, B, C, D) => E): Par[E] =
     map2(map3(fa, fb, fc)((a, b, c) => (a, b, c)), fd)((abc, d) => f(abc._1, abc._2, abc._3, d))
-
 
   def run[A](s: ExecutorService)(a: Par[A]): Future[A] = a(s)
 }
