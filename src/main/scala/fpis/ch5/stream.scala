@@ -79,6 +79,15 @@ object Stream {
         cons(f(a), acc)
       }
 
+    def product[B](s: Stream[B]): Stream[(A, B)] =
+      unfold((stream, s))(ss => (ss._1.headOption, ss._2.headOption) match {
+        case (Some(h1), Some(h2)) => Some(((h1, h2), (ss._1.tail, ss._2.tail)))
+        case _ => None
+      })
+
+    def map2[B, C](s: Stream[B])(f: (A, B) => C): Stream[C] =
+      product(s).map(x => f(x._1, x._2))
+
     def mapOverUnfold[B](f: A => B): Stream[B] =
       unfold(stream) {s =>
         s.headOption match {
