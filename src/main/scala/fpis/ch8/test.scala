@@ -20,7 +20,7 @@ object Gen {
   def unit[A](a: => A): Gen[A] =
     Gen(State.unit[RNG, A](a))
 
-  def boolean: Gen[Boolean] = choose(Int.MinValue, Int.MaxValue).map(_ % 2 == 0)
+  def boolean: Gen[Boolean] = choose(Int.MinValue + 1, Int.MaxValue).map(_ % 2 == 0)
 
   def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] = {
     def go(n: Int, g: Gen[A], acc: Gen[List[A]]): Gen[List[A]] = {
