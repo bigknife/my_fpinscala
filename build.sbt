@@ -40,5 +40,6 @@ initialCommands in (Test, console) := """import fpinscala._"""
 // client project
 lazy val rootProject = simpleProject
   .settings(
-    libraryDependencies ++= projects.common
+    libraryDependencies ++= projects.common,
+    ensimeIgnoreMissingDirectories in ThisBuild := true
   )
