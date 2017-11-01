@@ -17,12 +17,21 @@ object Stream {
       override def toString: String           = s"$hd #:: <tl>"
     }
 
+  def zip[A, B](sa: Stream[A], sb: Stream[B]): Stream[(A, B)] = {
+    for {
+      a <- sa
+      b <- sb
+    } yield (a, b)
+  }
+
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty
     else cons(as.head, apply(as.tail: _*))
 
   implicit final class StreamOp[+A](stream: Stream[A]) {
     def #::[B >: A](a: B): Stream[B] = cons(a, stream)
+
+    def zip[B](sb: Stream[B]): Stream[(A, B)] = Stream.zip(stream, sb)
 
     def toList: List[A] = {
       def go(acc: List[A], rest: Stream[A]): List[A] =
@@ -103,6 +112,9 @@ object Stream {
         else acc
       }
 
+    def find(p: A => Boolean): Option[A] =
+      filter(p).headOption
+
     def append[B >: A](tail: Stream[B]): Stream[B] =
       foldRight(tail)(cons(_, _))
 
@@ -144,6 +156,9 @@ object Stream {
     case None         => empty[A]
     case Some((a, s)) => cons(a, unfold(s)(f))
   }
+
+  def from(n: Int): Stream[Int] =
+    unfold[Int, Int](n)(x => Some((x, x + 1)))
 
   def constantOverUnfold[A](a: A): Stream[A] = unfold(a)(x => Some(x, x))
 

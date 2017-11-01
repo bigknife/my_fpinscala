@@ -37,6 +37,16 @@ object Gen {
     go(n, g, unit[List[A]](List[A]()))
   }
 
+  def listOfN[A](size: Gen[Int], g: Gen[A]): Gen[List[A]] = {
+    size.flatMap(n => listOfN(n, g))
+  }
+
+  def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] =
+    for {
+      b <- boolean
+      a <- if (b) g1 else g2
+    } yield a
+
   object ops {
     implicit def genOps[A](gen: Gen[A]): GenOps[A] = new GenOps(gen)
   }
@@ -57,4 +67,10 @@ private[fpis] final class GenOps[A](gen: Gen[A]) {
       genb.sample.run(rng1)
     })
   )
+
+  def listOfN(n: Int): Gen[List[A]] = Gen.listOfN(n, gen)
+
+  def listOfN(n: Gen[Int]): Gen[List[A]] = Gen.listOfN(n, gen)
+
+  def union(gen1: Gen[A]): Gen[A] = Gen.union(gen, gen1)
 }
